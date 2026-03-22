@@ -1,0 +1,13 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Java
+out/
+*.class
+
+# sensitive config
+**/db.properties
+
+# Logs
+*.log

@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class GettingDataFromDataBase {
+public class SelectGetData {
     static void main() {
         try (Connection conn = DB.getConnection();
         Statement statement = conn.createStatement();

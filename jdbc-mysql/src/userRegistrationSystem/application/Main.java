@@ -19,9 +19,7 @@ import java.util.Scanner;
 public class Main {
     static void main() {
         Connection conn = DB.getConnection();
-
         menu(conn);
-
         DB.closeConnection();
     }
 
@@ -44,7 +42,7 @@ public class Main {
                     6 - Find employees by department
                     0 - Exit
                     """);
-            choice = readInt(sc, 1, 6);
+            choice = readInt(sc, 0, 6);
 
             switch (choice) {
                 case 1:
@@ -75,7 +73,6 @@ public class Main {
                 case 0:
                     break;
             }
-
         } while (choice != 0);
     }
 
@@ -129,7 +126,7 @@ public class Main {
     }
 
     public static Employee findEmployeeById(Scanner sc, EmployeeDao employeeDao) {
-        System.out.print("ID: ");
+        System.out.print("Employee ID: ");
         while (true) {
             try {
                 return employeeDao.findById(Integer.parseInt(sc.nextLine()));
@@ -144,7 +141,7 @@ public class Main {
     }
 
     public static Department findDepartmentById(Scanner sc, DepartmentDao departmentDao) {
-        System.out.print("ID: ");
+        System.out.print("Department ID: ");
         while (true) {
             try {
                 return departmentDao.findById(Integer.parseInt(sc.nextLine()));
@@ -175,38 +172,25 @@ public class Main {
         String name = sc.nextLine();
         System.out.print("Email: ");
         String email = sc.nextLine();
-        System.out.print("Birthdate: ");
-        LocalDate birthDate;
-        while(true) {
-            try {
-                birthDate = LocalDate.parse(sc.nextLine(), DateTimeFormatter.ofPattern("MM/dd/yyyy"));
-                break;
-            } catch (DateTimeParseException e) {
-                System.out.println("Error: The date must be (MM/dd/yyyy)");
-                System.out.print(">> ");
-            }
-        }
+        LocalDate birthDate = readDate(sc); // System.out.print("Birthdate: "); inside readDate()
         System.out.print("Base Salary: ");
-        double baseSalary = Double.parseDouble(sc.nextLine());
-        System.out.print("Department ID: ");
-        Department department;
-        while (true) {
-            try {
-                department = departmentDao.findById(Integer.parseInt(sc.nextLine()));
-                break;
-            } catch (DbException dbException) {
-                System.out.println(dbException.getMessage());
+        double baseSalary;
+        do {
+            baseSalary = Double.parseDouble(sc.nextLine());
+            if (baseSalary < 0) {
+                System.out.println("Error: Base Salary must be a positive number");
                 System.out.print(">> ");
             }
-        }
-        return new Employee(null, name, email, birthDate,  baseSalary, department);
+        } while (baseSalary < 0);
+        Department department = findDepartmentById(sc, departmentDao); // System.out.print("Department ID: ") inside findDepartmentById()
+        return new Employee(null, name, email, birthDate,  baseSalary, department); // ID auto-increment
     }
 
     public static Department newDepartment(Scanner sc) {
         System.out.println("\n===== Department factory =====\n");
         System.out.print("Department name: ");
         String name = sc.nextLine();
-        return new Department(null, name);
+        return new Department(null, name); // ID auto-increment
     }
 
     public static void update(Scanner sc, EmployeeDao employeeDao, DepartmentDao departmentDao) {
@@ -215,16 +199,7 @@ public class Main {
                             Department - 2""");
         if (readInt(sc, 1, 2) == 1) {
             listEmployees(employeeDao.findAll());
-            Employee employee;
-            while (true) {
-                try {
-                    employee = findEmployeeById(sc, employeeDao);
-                    break;
-                } catch (DbException dbException) {
-                    System.out.println(dbException.getMessage());
-                    System.out.print(">> ");
-                }
-            }
+            Employee employee = findEmployeeById(sc, employeeDao);
             System.out.println("""
                     1 - Name
                     2 - Email
@@ -244,17 +219,9 @@ public class Main {
                     employeeDao.update(employee);
                     break;
                 case 3:
-                    System.out.print("New Birthdate: ");
-                    while (true) {
-                        try {
-                            employee.setBirthDate(LocalDate.parse(sc.nextLine(), DateTimeFormatter.ofPattern("MM/dd/yyyy")));
-                            employeeDao.update(employee);
-                            break;
-                        } catch (DateTimeParseException e) {
-                            System.out.println("Error: The date must be (MM/dd/yyyy)");
-                            System.out.print(">> ");
-                        }
-                    }
+                    System.out.print("New "); // System.out.print("Birthdate: ") inside readDate()
+                    employee.setBirthDate(readDate(sc));
+                    employeeDao.update(employee);
                     break;
                 case 4:
                     System.out.print("New Base Salary: ");
@@ -262,17 +229,9 @@ public class Main {
                     employeeDao.update(employee);
                     break;
                 case 5:
-                    System.out.print("New Department ID: ");
-                    while (true) {
-                        try {
-                            employee.setDepartment(departmentDao.findById(Integer.parseInt(sc.nextLine())));
-                            employeeDao.update(employee);
-                            break;
-                        } catch (DbException dbException) {
-                            System.out.println(dbException.getMessage());
-                            System.out.println(">> ");
-                        }
-                    }
+                    System.out.print("New "); // System.out.print("Department ID: ") inside findDepartmentById()
+                    employee.setDepartment(findDepartmentById(sc, departmentDao));
+                    employeeDao.update(employee);
                     break;
                 case 6:
                     int id = employee.getId();
@@ -281,6 +240,12 @@ public class Main {
                     employeeDao.update(employee);
                     break;
             }
+        } else {
+            listDepartment(departmentDao.findAll());
+            Department department = findDepartmentById(sc, departmentDao);
+            System.out.print("New Deparment name: ");
+            department.setName(sc.nextLine());
+            departmentDao.update(department);
         }
     }
 
@@ -292,34 +257,10 @@ public class Main {
                             """);
         switch (readInt(sc, 1, 3)) {
             case 1:
-                System.out.print("ID: ");
-                while (true) {
-                    try {
-                        employeeDao.deleteById(Integer.parseInt(sc.nextLine()));
-                        break;
-                    } catch (DbException dbException) {
-                        System.out.println(dbException.getMessage());
-                        System.out.print(">> ");
-                    } catch (NumberFormatException numberFormatException) {
-                        System.out.println("ID must be an integer");
-                        System.out.print(">> ");
-                    }
-                }
+                employeeDao.deleteById(findEmployeeById(sc, employeeDao).getId());
                 break;
             case 2:
-                System.out.print("ID: ");
-                while (true) {
-                    try {
-                        departmentDao.deleteById(Integer.parseInt(sc.nextLine()));
-                        break;
-                    } catch (DbException dbException) {
-                        System.out.println(dbException.getMessage());
-                        System.out.print(">> ");
-                    } catch (NumberFormatException numberFormatException) {
-                        System.out.println("ID must be an integer");
-                        System.out.print(">> ");
-                    }
-                }
+                departmentDao.deleteById(findDepartmentById(sc, departmentDao).getId());
                 break;
             case 3:
                 break;
@@ -327,21 +268,7 @@ public class Main {
     }
 
     public static void findEmployeesByDepartment(Scanner sc, EmployeeDao employeeDao, DepartmentDao departmentDao) {
-        System.out.print("Department ID: ");
-        Department department;
-        while (true) {
-            try {
-                department = departmentDao.findById(Integer.parseInt(sc.nextLine()));
-                break;
-            } catch (DbException dbException) {
-                System.out.println(dbException.getMessage());
-                System.out.print(">> ");
-            } catch (NumberFormatException numberFormatException) {
-                System.out.println("ID must be an integer");
-                System.out.print(">> ");
-            }
-        }
-        listEmployees(employeeDao.findByDepartment(department));
+        listEmployees(employeeDao.findByDepartment(findDepartmentById(sc, departmentDao)));
     }
 
     public static int readInt(Scanner sc, int start, int end) {
@@ -353,7 +280,19 @@ public class Main {
                     return num;
                 }
             } catch (NumberFormatException e) {
-                System.out.printf("Invalid input, the number must be between %d and %d", start, end);
+                System.out.printf("Invalid input, the number must be between %d and %d\n", start, end);
+            }
+        }
+    }
+
+    public static LocalDate readDate(Scanner sc) {
+        System.out.print("Birthdate: ");
+        while (true) {
+            try {
+                return LocalDate.parse(sc.nextLine(), DateTimeFormatter.ofPattern("MM/dd/yyyy"));
+            } catch (DateTimeParseException e) {
+                System.out.println("Error: The date must be (MM/dd/yyyy)");
+                System.out.print(">> ");
             }
         }
     }

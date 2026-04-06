@@ -1,6 +1,7 @@
 package userRegistrationSystem.dao.impl;
 
 import db.DbException;
+import db.DbIntegrityException;
 import userRegistrationSystem.dao.interfaces.DepartmentDao;
 import userRegistrationSystem.entities.Department;
 
@@ -47,9 +48,7 @@ public class DepartmentDaoImpl implements DepartmentDao {
             ps.setString(1, department.getName());
             ps.setInt(2, department.getId());
 
-            if(ps.executeUpdate() > 0) {
-                System.out.println("ID " + department.getId() + " updated");
-            } else  {
+            if(ps.executeUpdate() ==  0) {
                 throw new DbException("Error while updating department");
             }
 
@@ -61,15 +60,15 @@ public class DepartmentDaoImpl implements DepartmentDao {
     @Override
     public void deleteById(Integer id) {
         try(PreparedStatement ps = conn.prepareStatement("DELETE FROM department WHERE id = ?")) {
-
             ps.setInt(1, id);
-
             if(ps.executeUpdate() ==  0) {
                 throw new DbException("No department found with id " + id);
             }
-
         } catch (SQLException e) {
-            System.out.println("Error while deleting department. " + e.getMessage());
+            if (e.getSQLState().startsWith("23")) { // 23xxx code -> SQL Integrity standard error
+                throw new DbIntegrityException("Integrity violation: department is in use");
+            }
+            throw new DbException("Error while deleting department. " + e.getMessage());
         }
     }
 
@@ -94,20 +93,13 @@ public class DepartmentDaoImpl implements DepartmentDao {
     @Override
     public List<Department> findAll() {
         try(PreparedStatement ps = conn.prepareStatement(
-                "SELECT * FROM department")) {
+                "SELECT * FROM department ORDER BY department.id")) {
 
             List<Department> departments = new ArrayList<>();
 
             try(ResultSet resultSet = ps.executeQuery()) {
-                Map<Integer, Department> departmentMap = new HashMap<>();
-
                 while (resultSet.next()) {
-                    Department department = departmentMap.get(resultSet.getInt("id"));
-                    if (department == null) {
-                        department = new Department(resultSet.getInt("id"), resultSet.getString("name"));
-                        departmentMap.put(department.getId(), department);
-                    }
-                    departments.add(department);
+                    departments.add(new Department(resultSet.getInt("id"), resultSet.getString("name")));
                 }
             }
             return departments;

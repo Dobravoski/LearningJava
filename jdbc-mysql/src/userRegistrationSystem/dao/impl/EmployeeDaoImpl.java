@@ -77,7 +77,7 @@ public class EmployeeDaoImpl implements EmployeeDao {
             }
 
         } catch (SQLException e) {
-            System.out.println("Error while deleting employee. " + e.getMessage());
+            throw new DbException("Error while deleting employee. " + e.getMessage());
         }
     }
 
@@ -113,7 +113,8 @@ public class EmployeeDaoImpl implements EmployeeDao {
                 "SELECT e.id, e.name, e.email, e.birthDate, e.baseSalary, " +
                         "d.Id AS departmentId, d.name AS departmentName " +
                         "FROM employee e " +
-                        "INNER JOIN department d ON e.departmentId = d.id")) {
+                        "INNER JOIN department d ON e.departmentId = d.id " +
+                        "ORDER BY e.id")) {
 
             List<Employee> employees = new ArrayList<>();
 

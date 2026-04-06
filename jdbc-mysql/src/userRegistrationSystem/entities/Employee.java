@@ -25,7 +25,7 @@ public class Employee {
         }
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -53,7 +53,7 @@ public class Employee {
         this.birthDate = birthDate;
     }
 
-    public double getBaseSalary() {
+    public Double getBaseSalary() {
         return baseSalary;
     }
 

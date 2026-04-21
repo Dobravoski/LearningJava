@@ -11,3 +11,10 @@ out/
 
 # Logs
 *.log
+
+
+# Maven
+jpa/target/
+
+# Windows
+Thumbs.db

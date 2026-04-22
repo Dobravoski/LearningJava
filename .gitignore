@@ -1,20 +1,56 @@
-# IntelliJ
-.idea/
-*.iml
+# Build outputs (all modules)
+**/target/
+**/out/
+**/build/
 
-# Java
-out/
+# Keep Maven wrapper
+!.mvn/wrapper/maven-wrapper.jar
+
+# Compiled files
 *.class
 
-# sensitive config
-**/db.properties
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# IntelliJ local files
+shelf/
+workspace.xml
+queries/
+dataSources/
+dataSources.local.xml
+httpRequests/
+
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
 
 # Logs
 *.log
 
-
-# Maven
-jpa/target/
-
-# Windows
+# OS files
+.DS_Store
 Thumbs.db
+
+# Sensitive configuration
+**/db.properties
+
+# Misc
+HELP.md
